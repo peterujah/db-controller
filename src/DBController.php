@@ -11,31 +11,31 @@ namespace Peterujah\NanoBlock;
  * Class DBController.
  */
 class DBController{ 
-    public const PORT = "PORT";
-    public const HOST = "HOST";
-    public const VERSION = "VERSION";
-    public const NAME = "NAME";
-    public const USERNAME = "USERNAME";
-    public const PASSWORD = "PASSWORD";
+	public const PORT = "PORT";
+	public const HOST = "HOST";
+	public const VERSION = "VERSION";
+	public const NAME = "NAME";
+	public const USERNAME = "USERNAME";
+	public const PASSWORD = "PASSWORD";
 
 	protected $conn; 
 	protected $stmt; 
-    protected $onDebug = false;
-    /**
-     * self::PORT => 3306,
-     * self::HOST => "localhost",
-     * self::VERSION => "mysql",
-     * self::NAME => "dbname",
-     * self::USERNAME => "root",
-     * self::PASSWORD => ""
-     */
-    protected $config = array();
+	protected $onDebug = false;
+	/**
+	* self::PORT => 3306,
+	* self::HOST => "localhost",
+	* self::VERSION => "mysql",
+	* self::NAME => "dbname",
+	* self::USERNAME => "root",
+	* self::PASSWORD => ""
+	*/
+	protected $config = array();
 
-    public $error;
-    public const _INT = \PDO::PARAM_INT;
-    public const _BOOL = \PDO::PARAM_BOOL;
-    public const _NULL = \PDO::PARAM_NULL;
-    public const _STRING = \PDO::PARAM_STR;
+	public $error;
+	public const _INT = \PDO::PARAM_INT;
+	public const _BOOL = \PDO::PARAM_BOOL;
+	public const _NULL = \PDO::PARAM_NULL;
+	public const _STRING = \PDO::PARAM_STR;
 
 	public function __construct($config = null){
 		if(!empty($config)){
@@ -48,20 +48,20 @@ class DBController{
         }
 	}
 
-    public function conn(){
-        $this->onCreate();
-        return $this; 
-    } 
+	public function conn(){
+		$this->onCreate();
+		return $this; 
+	} 
 
-    public function setConfig($key, $value){
-        $this->config[$key] = $value;
-        return $this;
-    } 
+	public function setConfig($key, $value){
+		$this->config[$key] = $value;
+		return $this;
+	} 
 
-    public function setDebug($debug){
-        $this->onDebug = $debug;
-        return $this;
-    } 
+	public function setDebug($debug){
+		$this->onDebug = $debug;
+		return $this;
+	} 
 
     protected function onCreate(){
         if(!empty($this->conn) or empty($this->config)){
