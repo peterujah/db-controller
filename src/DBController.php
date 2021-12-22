@@ -20,14 +20,16 @@ class DBController{
 
 	protected $conn; 
 	protected $stmt; 
-    protected $config = array(
-        self::PORT => 3306,
-        self::HOST => "localhost",
-        self::VERSION => "mysql",
-        self::NAME => "dbname",
-        self::USERNAME => "root",
-        self::PASSWORD => ""
-    );
+    protected $onDebug = false;
+    /**
+     * self::PORT => 3306,
+     * self::HOST => "localhost",
+     * self::VERSION => "mysql",
+     * self::NAME => "dbname",
+     * self::USERNAME => "root",
+     * self::PASSWORD => ""
+     */
+    protected $config = array();
 
     public $error;
     public const _INT = \PDO::PARAM_INT;
@@ -40,11 +42,9 @@ class DBController{
             if(is_array($config)){
                 $this->config = $config;
             }else if(is_dir($config) && file_exists($config)){
-                $this->config = require_once($config);
+                $this->config = include_once($config);
             }
-            if(!empty($this->config)){
-                $this->onCreate();
-            }
+            $this->onCreate();
         }
 	}
 
@@ -58,8 +58,13 @@ class DBController{
         return $this;
     } 
 
-    private function onCreate(){
-        if(!empty($this->conn)){
+    public function setDebug($debug){
+        $this->onDebug = $debug;
+        return $this;
+    } 
+
+    protected function onCreate(){
+        if(!empty($this->conn) or empty($this->config)){
             return;
         }
         $dsn = "{$this->config["VERSION"]}:host={$this->config["HOST"]};port={$this->config["PORT"]};dbname={$this->config["NAME"]}"; 
@@ -70,8 +75,12 @@ class DBController{
 				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
 			)); 
 		} catch(\PDOException $e){ 
-			$this->error = $e->getMessage();
-			trigger_error($e->getMessage()); 
+            if($this->onDebug){
+                $this->error = $e->getMessage();
+			    trigger_error($e->getMessage()); 
+            }else{
+                print("PDOException: database operation connection error"); 
+            }
 		} 
     }
 
@@ -83,8 +92,8 @@ class DBController{
         return $this->stmt->errorInfo(); 
     } 
 
-	public function debug(){
-		return $this->stmt->debugDumpParams();
+	public function dumpDebug(){
+		return $this->onDebug ? $this->stmt->debugDumpParams() : null;
 	}
 
 	public function prepare($query){
@@ -101,7 +110,7 @@ class DBController{
 				case is_int($value): $type = self::_INT; break; 
 				case is_bool($value): $type = self::_BOOL; break;
 				case is_null($value): $type = self::_NULL; break; 
-				default: $type = self::_STR; 
+				default: $type = self::_STRING; 
 			} 
 		} 
 		return $type; 
