@@ -46,10 +46,10 @@ $handler = new Conn($_SERVER["HOST_NAME"]=="localhost");
 ```
 
 ```php
-$handler->prepare('SELECT * FROM users WHERE username = :username');
+$handler->prepare('SELECT * FROM users WHERE username = :username LIMIT 1');
 $handler->bind(':username', "Peter");
 $handler->execute();
-$res = $handler->getAll();
+$res = $handler->getOne();
 $handler->free();
 ```
 
@@ -82,6 +82,7 @@ $handler->free();
 | conn()           | Retrieve DBController Instance useful when you call "setConfig(config)"                                    |
 
 
+Connection Config array example 
 
 ```php 
 [
