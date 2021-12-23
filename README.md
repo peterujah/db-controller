@@ -10,11 +10,13 @@ composer require peterujah/db-controller
 
 # USAGES
 
+Initialize DBController with configuration array
+
 ```php
 $handler = new \Peterujah\NanoBlock\DBController($configArray);
 ```
 
-Or extend `\Peterujah\NanoBlock\DBController` to set your connection details
+Or extend `\Peterujah\NanoBlock\DBController` to set your connection details like below
 
 ```php
 class Conn extends \Peterujah\NanoBlock\DBController{ 
@@ -35,15 +37,16 @@ class Conn extends \Peterujah\NanoBlock\DBController{
 		} 
 		$this->onDebug = $development;
 		$this->config = $config;
-		/* Initalize db create */
 		$this->onCreate();
 	}
 }
 ```
-Initialize custom class
+Initialize your custom class
 ```php 
 $handler = new Conn($_SERVER["HOST_NAME"]=="localhost");
 ```
+
+Now run query select, insert, update, delete etc.. using prepare statment
 
 ```php
 $handler->prepare('SELECT * FROM users WHERE username = :username LIMIT 1');
@@ -52,6 +55,8 @@ $handler->execute();
 $res = $handler->getOne();
 $handler->free();
 ```
+
+Or run query select, insert, update, delete etc.. using query
 
 ```php
 $handler->query('SELECT * FROM users');
