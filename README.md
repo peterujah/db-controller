@@ -47,7 +47,7 @@ $handler = new Conn($_SERVER["HOST_NAME"]=="localhost");
 
 ```php
 $handler->prepare('SELECT * FROM users WHERE username = :username');
-$handler->bind(':username', "Perer");
+$handler->bind(':username', "Peter");
 $handler->execute();
 $res = $handler->getAll();
 $handler->free();
