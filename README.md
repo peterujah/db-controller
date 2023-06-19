@@ -1,19 +1,35 @@
-# db-controller
-Php PDO wrapper
+# DBController
+
+DBController is a PHP PDO wrapper that provides a convenient way to interact with a database using the PDO extension.
 
 ## Installation
 
-Installation is super-easy via Composer:
-```md
+You can install the package via Composer by running the following command:
+
+```bash
 composer require peterujah/db-controller
 ```
 
 # USAGES
 
-Initialize DBController with configuration array
+To use DBController, follow these easy steps.
+
+1. Create an instance of the DBController class by passing the database configuration as an array or a path to a configuration file that returns array.
+
 
 ```php
-$handler = new \Peterujah\NanoBlock\DBController($configArray);
+use Peterujah\NanoBlock\DBController;
+// Pass the configuration as an array
+$config = [
+    'VERSION' => 'mysql',
+    'HOST' => 'localhost',
+    'PORT' => 3306,
+    'NAME' => 'my_database',
+    'USERNAME' => 'root',
+    'PASSWORD' => 'password',
+];
+
+$handler = new DBController($config);
 ```
 
 Or extend `\Peterujah\NanoBlock\DBController` to set your connection details like below
@@ -21,7 +37,7 @@ Or extend `\Peterujah\NanoBlock\DBController` to set your connection details lik
 ```php
 class Conn extends \Peterujah\NanoBlock\DBController{ 
 	public function __construct(bool $development = false){
-		$config = array(
+ 		$config = array(
 			"PORT" => 3306,
 			"HOST" => "localhost",
 			"VERSION" => "mysql",
@@ -36,8 +52,7 @@ class Conn extends \Peterujah\NanoBlock\DBController{
 			$config["NAME"] = "dbname";
 		} 
 		$this->onDebug = $development;
-		$this->config = $config;
-		$this->onCreate();
+		parent::__construct($config);
 	}
 }
 ```
@@ -64,6 +79,79 @@ $res = $handler->getAll();
 $handler->free();
 ```
 
+# Customization
+
+Customize the configuration or enable debugging as needed.
+
+```php
+// Set a configuration value
+$handler->setConfig('VERSION', 'pgsql');
+
+// Enable debugging mode
+$handler->setDebug(true);
+
+```
+
+# Error Handling
+
+DBController provides error handling for database operations. You can retrieve the error information using the `error()` or `errorInfo()` methods.
+
+```php
+// Get the error information for the last statement execution
+$errorInfo = $handler->error();
+
+// Print the error message
+if ($errorInfo !== null) {
+    echo "Error: " . $errorInfo[2];
+}
+```
+
+# Debugging
+
+You can enable debugging mode to get more detailed information about the executed statements by calling the `dumpDebug()` method.
+
+```php
+// Enable debugging mode
+$handler->setDebug(true);
+
+// Dump the debug information for the last statement execution
+$handler->dumpDebug();
+
+```
+
+# Methods
+
+Use the various methods provided by the DBController class to interact with the database.
+
+```php
+// Prepare a statement
+$query = 'SELECT * FROM users WHERE id = :id';
+$handler->prepare($query);
+
+// Bind values to parameters
+$handler->bind(':id', 1);
+
+//Binds a variable to a parameter.
+$handler->param(':id', 1, DBController::_INT)
+
+// Execute the statement
+$handler->execute();
+
+// Fetch a single row as an object
+$user = $handler->getOne();
+
+// Fetch all rows as an array of objects
+$users = $handler->getAll();
+
+// Get the number of rows affected by the last statement execution
+$rowCount = $handler->rowCount();
+
+// Get the last inserted ID
+$lastInsertId = $handler->getLastInsertId();
+
+// Free up the statement cursor
+$handler->free();
+```
 
 | Options         | Description                                                                         |
 |-----------------|-------------------------------------------------------------------------------------|
@@ -87,7 +175,9 @@ $handler->free();
 | conn()           | Retrieve DBController Instance useful when you call "setConfig(config)"                                    |
 
 
-Connection Config array example 
+# Configuration format
+
+Connection config array example 
 
 ```php 
 [
@@ -98,6 +188,16 @@ Connection Config array example
      USERNAME => "root",
      PASSWORD => ""
 ]
+```
+
+# Contributing
+
+Contributions are welcome! If you encounter any issues or have suggestions for improvements, please open an issue or submit a pull request.
+
+# License
+
+```bash
+DBController is open-source software licensed under the MIT license.
 ```
 
 
