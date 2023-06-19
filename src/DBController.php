@@ -292,7 +292,9 @@ class DBController
      * Frees up the statement cursor and sets the statement object to null.
      */
     public function free() {
-        $this->stmt->closeCursor();
-        $this->stmt = null;
+        if ($this->stmt !== null) {
+            $this->stmt->closeCursor();
+            $this->stmt = null;
+        }
     }
 }
