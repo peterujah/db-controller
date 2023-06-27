@@ -297,4 +297,11 @@ class DBController
             $this->stmt = null;
         }
     }
+     /**
+     * Frees up the statement cursor and close database connection
+     */
+    public function close() {
+        $this->free();
+        $this->conn = null;
+    }
 }
