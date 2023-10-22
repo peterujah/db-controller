@@ -8,31 +8,73 @@
  * @license     MIT public license
  */
 namespace Peterujah\NanoBlock;
-
+use \stdClass;
+use \PDO;
+use \InvalidArgumentException;
+use \PDOException;
 /**
  * Class DBController.
  * Parent class for database operations.
  */
 class DBController
 {
-    protected $conn; // Database connection object
-    protected $stmt; // PDO statement object
-    protected $onDebug = false; // Debug mode flag
-    protected $config = array(); // Database configuration
+    /**
+    * @var int PARAM_INT Integer Parameter
+    */
+    public const PARAM_INT = PDO::PARAM_INT; 
+    
+    /**
+    * @var bool PARAM_BOOL Boolean Parameter
+    */
+    public const PARAM_BOOL = PDO::PARAM_BOOL;
 
-    public $error; // Last error message
-    protected $keys = ['VERSION', 'HOST', 'NAME', 'USERNAME', 'PASSWORD']; // Required configuration keys
-    public const _INT = \PDO::PARAM_INT; // Parameter type constant: Integer
-    public const _BOOL = \PDO::PARAM_BOOL; // Parameter type constant: Boolean
-    public const _NULL = \PDO::PARAM_NULL; // Parameter type constant: Null
-    public const _STRING = \PDO::PARAM_STR; // Parameter type constant: String
+    /**
+    * @var null PARAM_NULL Null Parameter
+    */
+    public const PARAM_NULL = PDO::PARAM_NULL;
+
+    /**
+    * @var string PARAM_STRING String Parameter
+    */
+    public const PARAM_STRING = PDO::PARAM_STR;
+
+    /**
+    * @var PDO $conn PDO Database connection instance
+    */
+    protected PDO $conn; 
+
+     /**
+    * @var object $stmt pdo statement object
+    */
+    protected $stmt; 
+
+    /**
+    * @var bool $onDebug debug mode flag
+    */
+    protected $onDebug = false; 
+
+    /**
+    * @var array $config  Database configuration
+    */
+    protected $config = [];
+
+    /**
+    * @var string $error Last error message
+    */
+    public string $error = '';
+
+    /**
+    * @var array $keys Required configuration keys
+    */
+    protected $keys = ['VERSION', 'HOST', 'NAME', 'USERNAME', 'PASSWORD']; 
+
 
     /**
      * Constructor.
      *
      * @param array|string|null $config The database configuration.
      *
-     * @throws \InvalidArgumentException If a required configuration key is missing.
+     * @throws InvalidArgumentException If a required configuration key is missing.
      */
     public function __construct($config = null) {
         if (!empty($config)) {
@@ -44,7 +86,7 @@ class DBController
 
             foreach ($this->keys as $key) {
                 if (!array_key_exists($key, $this->config)) {
-                    throw new \InvalidArgumentException("Missing required configuration key: {$key}");
+                    throw new InvalidArgumentException("Missing required configuration key: {$key}");
                 }
             }
             $this->onCreate();
@@ -56,7 +98,7 @@ class DBController
      *
      * @return DBController The current DBController instance.
      */
-    public function conn() {
+    public function conn(): self {
         $this->onCreate();
         return $this;
     }
@@ -69,7 +111,7 @@ class DBController
      *
      * @return DBController The current DBController instance.
      */
-    public function setConfig($key, $value) {
+    public function setConfig(string $key, mixed $value) {
         $this->config[$key] = $value;
         return $this;
     }
@@ -81,7 +123,7 @@ class DBController
      *
      * @return DBController The current DBController instance.
      */
-    public function setDebug($debug) {
+    public function setDebug(bool $debug): self {
         $this->onDebug = $debug;
         return $this;
     }
@@ -90,17 +132,17 @@ class DBController
      * Initializes the database connection.
      * This method is called internally and should not be called directly.
      */
-    protected function onCreate() {
+    protected function onCreate(): void {
         if (!empty($this->conn) or empty($this->config)) {
             return;
         }
         $dsn = "{$this->config["VERSION"]}:host={$this->config["HOST"]};port={$this->config["PORT"]};dbname={$this->config["NAME"]}";
         try {
-            $this->conn = new \PDO($dsn, $this->config["USERNAME"], $this->config["PASSWORD"], array(
-                \PDO::ATTR_PERSISTENT => true,
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
+            $this->conn = new PDO($dsn, $this->config["USERNAME"], $this->config["PASSWORD"], array(
+                PDO::ATTR_PERSISTENT => true,
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
             ));
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             if ($this->onDebug) {
                 $this->error = $e->getMessage();
                 trigger_error($e->getMessage());
@@ -115,7 +157,7 @@ class DBController
      *
      * @return array|null The error information array.
      */
-    public function error() {
+    public function error(): mixed {
         return $this->stmt->errorInfo();
     }
 
@@ -124,7 +166,7 @@ class DBController
      *
      * @return array|null The error information array.
      */
-    public function errorInfo() {
+    public function errorInfo(): mixed {
         return $this->stmt->errorInfo();
     }
 
@@ -133,7 +175,7 @@ class DBController
      *
      * @return string|null The debug information or null if debug mode is off.
      */
-    public function dumpDebug() {
+    public function dumpDebug(): mixed {
         return $this->onDebug ? $this->stmt->debugDumpParams() : null;
     }
 
@@ -144,7 +186,7 @@ class DBController
      *
      * @return DBController The current DBController instance.
      */
-    public function prepare($query) {
+    public function prepare(string $query): self {
         $this->stmt = $this->conn->prepare($query);
         return $this;
     }
@@ -156,7 +198,7 @@ class DBController
      *
      * @return DBController The current DBController instance.
      */
-    public function query($query) {
+    public function query(string $query): self {
         $this->stmt = $this->conn->query($query);
         return $this;
     }
@@ -165,17 +207,17 @@ class DBController
      * Returns the appropriate parameter type based on the value and type.
      *
      * @param mixed       $value The parameter value.
-     * @param null|int    $type  The parameter type.
+     * @param mixed  $type  The parameter type.
      *
      * @return int The parameter type.
      */
-    public function getType($value, $type) {
+    public function getType(mixed $value, mixed $type) {
         if (is_null($type)) {
             switch (true) {
-                case is_int($value): $type = self::_INT; break;
-                case is_bool($value): $type = self::_BOOL; break;
-                case is_null($value): $type = self::_NULL; break;
-                default: $type = self::_STRING;
+                case is_int($value): $type = self::PARAM_INT; break;
+                case is_bool($value): $type = self::PARAM_BOOL; break;
+                case is_null($value): $type = self::PARAM_NULL; break;
+                default: $type = self::PARAM_STRING;
             }
         }
         return $type;
@@ -190,7 +232,7 @@ class DBController
      *
      * @return DBController The current DBController instance.
      */
-    public function bind($param, $value, $type = null) {
+    public function bind(string $param, mixed $value, ?int $type = null): self {
         $this->stmt->bindValue($param, $value, $this->getType($value, $type));
         return $this;
     }
@@ -204,7 +246,7 @@ class DBController
      *
      * @return DBController The current DBController instance.
      */
-    public function param($param, $value, $type = null) {
+    public function param(string $param, mixed $value, ?int $type = null): self {
         $this->stmt->bindParam($param, $value, $this->getType($value, $type));
         return $this;
     }
@@ -214,10 +256,10 @@ class DBController
      *
      * @return bool True on success, false on failure.
      */
-    public function execute() {
+    public function execute(): bool {
         try {
             return $this->stmt->execute();
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             if ($this->onDebug) {
                 $this->error = $e->getMessage();
                 trigger_error($e->getMessage());
@@ -233,7 +275,7 @@ class DBController
      *
      * @return int The number of rows.
      */
-    public function rowCount() {
+    public function rowCount(): int {
         return $this->stmt->rowCount();
     }
 
@@ -242,8 +284,8 @@ class DBController
      *
      * @return object|bool The result object or false if no row is found.
      */
-    public function getOne() {
-        return $this->stmt->fetch(\PDO::FETCH_OBJ);
+    public function getOne(): mixed {
+        return $this->stmt->fetch(PDO::FETCH_OBJ);
     }
 
     /**
@@ -251,8 +293,8 @@ class DBController
      *
      * @return array The array of result objects.
      */
-    public function getAll() {
-        return $this->stmt->fetchAll(\PDO::FETCH_OBJ);
+    public function getAll(): mixed {
+        return $this->stmt->fetchAll(PDO::FETCH_OBJ);
     }
 
     /**
@@ -260,8 +302,22 @@ class DBController
      *
      * @return array The 2D array of integers.
      */
-    public function getInt() {
-        return $this->stmt->fetchAll(\PDO::FETCH_NUM);
+    public function getInt(): mixed {
+        return $this->stmt->fetchAll(PDO::FETCH_NUM);
+    }
+
+    /**
+     * Fetches all rows as a 2D array of integers.
+     *
+     * @return array The 2D array of integers.
+     */
+    public function getCount(): int 
+    {
+        $response = $this->stmt->fetchAll(PDO::FETCH_NUM);
+        if (isset($response[0][0])) {
+            return (int) $response[0][0];
+        }
+        return $response;
     }
 
     /**
@@ -269,7 +325,7 @@ class DBController
      *
      * @return stdClass The stdClass object containing the result rows.
      */
-    public function getAllObject() {
+    public function getAllObject(): stdClass {
         $result = new stdClass;
         $count = 0;
         while ($row = $this->stmt->fetchObject()) {
@@ -284,14 +340,14 @@ class DBController
      *
      * @return string The last insert ID.
      */
-    public function getLastInsertId() {
-        return $this->conn->lastInsertId();
+    public function getLastInsertId(): string {
+        return (string) $this->conn->lastInsertId();
     }
 
     /**
      * Frees up the statement cursor and sets the statement object to null.
      */
-    public function free() {
+    public function free(): void {
         if ($this->stmt !== null) {
             $this->stmt->closeCursor();
             $this->stmt = null;
@@ -300,7 +356,7 @@ class DBController
      /**
      * Frees up the statement cursor and close database connection
      */
-    public function close() {
+    public function close(): void {
         $this->free();
         $this->conn = null;
     }
